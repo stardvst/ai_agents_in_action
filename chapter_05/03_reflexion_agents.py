@@ -1,6 +1,18 @@
 import asyncio
 
-from agents import Agent, RunContextWrapper, Runner
+from agents import Agent, RunContextWrapper, Runner, function_tool
+from pydantic import BaseModel
+
+
+@function_tool
+def check_answer(days: int | None) -> bool:
+    """Return whether the proposed number of days is correct."""
+    return days == 26
+
+
+class CriticResult(BaseModel):
+    correct: bool
+    hint: str
 
 
 def get_reflexion_solver_instructions(
@@ -24,6 +36,8 @@ critic = Agent(
         "You are an expert tutor. If the solution is wrong, explain the error "
         "and give a concise hint for improvement."
     ),
+    tools=[check_answer],
+    output_type=CriticResult,
 )
 
 # --- Problem spec ------------------------------------------------------------
@@ -41,7 +55,7 @@ witness the end of the event.
 How many days does Alex spend in the past before he sees the end of the event?
 """
 TARGET_DAYS = "26"  # expected final answer
-MAX_ATTEMPTS = 5  # fail-safe cap on retries
+MAX_ATTEMPTS = 4  # fail-safe cap on retries
 
 
 async def main():
@@ -64,15 +78,20 @@ async def main():
 
         # --- Not solved: generate feedback & retry ------------------------------
         feedback_prompt = (
+            f"Problem:\n{problem}\n\n"
             f"Solution given:\n{answer}\n\n"
-            f"Expected final days: {TARGET_DAYS}\n"
-            "Explain the error briefly and give a helpful hint."
+            "Check the final number of days and provide feedback."
         )
-        feedback_resp = await Runner.run(critic, input=feedback_prompt)
-        hint = feedback_resp.final_output.strip()
 
-        print(f"Feedback:\n{hint}")
-        feedback_hint = hint
+        feedback_resp = await Runner.run(critic, input=feedback_prompt)
+        review = feedback_resp.final_output
+
+        if review.correct:
+            print("✅ Solution accepted.")
+            break
+
+        print(f"Feedback:\n{review.hint}")
+        feedback_hint = review.hint
     else:
         print("\n⚠️  Max attempts reached without a correct solution.")
 

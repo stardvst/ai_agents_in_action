@@ -9,14 +9,12 @@ def travel_back(year: int, years: int) -> str:
     """
     Travel back in time by a given number of years from the start year.
     """
-    print(f"Time travel back by {years} years")
     return f"Current year in time: {year - years}"
 
 
 @function_tool
 def travel_forward(year: int, years: int) -> str:
     """Travel forward in time by a given number of years from the start year."""
-    print(f"Time travel forward by {years} years")
     return f"Current year in time: {year + years}"
 
 
@@ -37,6 +35,7 @@ First, think step-by-step about the problem.
 You must use the tools to calculate dates. 
 After using a tool, reflect on the result and continue reasoning. 
 After gathering information, provide the final answer.
+Use the SequentialThinking tool for every reasoning step before choosing a time travel tool."
     """
     agent = Agent(
         model="gpt-4o",
@@ -55,13 +54,11 @@ by 50 years and stays there for 20 days. Then, he travels back to
 witness the end of the event. Alex current year is 2050.
 How many days does Alex spend in the past before he sees the end of the event?
 """
-        print("Running...")
         result = await Runner.run(
             agent,
             time_travel_problem,
             max_turns=25,
         )
-        print(result.final_output)
 
 
 if __name__ == "__main__":

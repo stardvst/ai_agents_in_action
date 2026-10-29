@@ -1,6 +1,10 @@
 import asyncio
 
 from agents import Agent, Runner
+from pydantic import BaseModel, Field
+
+class Evaluation(BaseModel):
+    score: float = Field(ge=0, le=10)
 
 # Agent for generating next-step thoughts
 generator = Agent(
@@ -10,7 +14,8 @@ generator = Agent(
 # Agent for evaluating partial solutions
 evaluator = Agent(
     name="ToT-Evaluator",
-    instructions="Assess how likely the proposed plan will solve the problem. Respond with 'promising' or 'unlikely'.",
+    instructions="Assess how likely the proposed plan will solve the problem. Respond with score = <number 0-10>.",
+    output_type=Evaluation,
 )
 
 problem = """
@@ -22,7 +27,7 @@ that can jump either -100 or -30 years.
 async def main():
     # Generate initial thought candidates
     initial_thoughts = []
-    for i in range(3):
+    for i in range(2):
         resp = await Runner.run(
             generator, input=f"Problem: {problem}\nThink of a first step."
         )
@@ -32,9 +37,9 @@ async def main():
     promising_branches = []
     for thought in initial_thoughts:
         eval_resp = await Runner.run(
-            evaluator, input=f"Plan: {thought}\nIs this promising?"
+            evaluator, input=f"Problem: {problem}\nPlan: {thought}\nIs this promising?"
         )
-        if "promising" in eval_resp.final_output.lower():
+        if eval_resp.final_output.score >= 7:
             # Expand this thought with a second step
             next_step = await Runner.run(
                 generator, input=f"Current idea: {thought}\nNext step?"

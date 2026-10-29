@@ -1,6 +1,6 @@
 import asyncio
 
-from agents import Agent, Runner, function_tool
+from agents import Agent, Runner, function_tool, trace
 
 
 # Define two tools for time calculations
@@ -37,3 +37,6 @@ problem = (
 
 result = asyncio.run(Runner.run(react_agent, input=problem))
 print(result.final_output)
+
+for item in result.new_items:
+    print(item.type, item.raw_item)
