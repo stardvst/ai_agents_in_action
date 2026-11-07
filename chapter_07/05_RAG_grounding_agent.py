@@ -89,20 +89,24 @@ and output answer.
 )
 
 
-for benchmark in _benchmarks:
-    question = benchmark["q"]
-    answer = benchmark["a"]
-    wrong_answer = benchmark["wrong"]
-    result = asyncio.run(Runner.run(agent, input=question)).final_output.strip()
-    grounding_input = dict(
-        question=question,
-        answer=result,
-    )
-    print("" + "=" * 40)
-    grounding = asyncio.run(
-        Runner.run(grounding_agent, input=str(grounding_input))
-    ).final_output
-    print(f"Grounded: {grounding.is_answer_grounded}")
-    print(f"Feedback: {grounding.feedback}")
-    print(f"Question: {question}")
-    print(f"Answer: {result}")
+async def main():
+    for benchmark in _benchmarks:
+        question = benchmark["q"]
+        answer = benchmark["a"]
+        wrong_answer = benchmark["wrong"]
+        response = await Runner.run(agent, input=question)
+        result = response.final_output.strip()
+        grounding_input = dict(
+            question=question,
+            answer=result,
+        )
+        print("" + "=" * 40)
+        response = await Runner.run(grounding_agent, input=str(grounding_input))
+        grounding = response.final_output
+        print(f"Grounded: {grounding.is_answer_grounded}")
+        print(f"Feedback: {grounding.feedback}")
+        print(f"Question: {question}")
+        print(f"Answer: {result}")
+
+if __name__ == "__main__":
+    asyncio.run(main())

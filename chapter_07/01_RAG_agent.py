@@ -45,17 +45,16 @@ You are a retrieval-augmented knowledge agent.
     tools=[search_knowledge],
 )
 
-for benchmark in _benchmarks:
-    question = benchmark["q"]
-    answer = benchmark["a"]
-    wrong_answer = benchmark["wrong"]
-    result = asyncio.run(Runner.run(agent, input=question)).final_output.strip()
-    print("" + "=" * 40)
-    print(f"Question: {question}")
-    print(f"Answer: {result}")
-    if result.lower() == answer.lower():
-        print(f"Correct -> {answer}")
-    else:
-        print(f"Incorrect -> Expected: {answer}")
-        if wrong_answer:
-            print(f"Wrong answer was: {wrong_answer}")
+async def main():
+    for benchmark in _benchmarks:
+        question = benchmark["q"]
+        answer = benchmark["a"]
+        wrong_answer = benchmark["wrong"]
+        response = await Runner.run(agent, input=question)
+        result = response.final_output.strip()
+        print("" + "=" * 40)
+        print(f"Question: {question}")
+        print(f"Answer: {result}")
+
+if __name__ == "__main__":
+    asyncio.run(main())

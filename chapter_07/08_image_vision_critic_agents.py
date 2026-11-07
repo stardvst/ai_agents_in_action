@@ -7,7 +7,9 @@ import sys
 from agents import Agent, ImageGenerationTool, Runner, function_tool, trace
 from openai import OpenAI
 from pydantic import BaseModel
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def open_file(path: str) -> None:
     if sys.platform.startswith("darwin"):
@@ -89,7 +91,7 @@ async def main():
                 tool_config={
                     "type": "image_generation",
                     "quality": "high",
-                    "model": "gpt-image-1",
+                    "model": "gpt-image-2.5-flare",
                     "size": "1536x1024",
                 }
             )
