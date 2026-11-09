@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Voice Studio · Realtime assistant</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f5f8;
+      --panel: #fff;
+      --text: #202337;
+      --muted: #6b7085;
+      --line: #e7e9f0;
+      --accent: #6655dd;
+      --soft: #eeebff;
+      --error: #b52c46;
+      --shadow: 0 16px 60px #24244208
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+    }
+
+    button,
+    input,
+    select {
+      font: inherit
+    }
+
+    button {
+      cursor: pointer;
+      transition: background .2s, transform .2s
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .45
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid #9d91f2;
+      outline-offset: 3px
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px)
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: auto;
+      padding: 34px 28px
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 34px
+    }
+
+    .brand {
+      font-weight: 750;
+      font-size: 19px;
+      letter-spacing: -.5px
+    }
+
+    .logo {
+      display: inline-grid;
+      place-items: center;
+      width: 35px;
+      height: 35px;
+      border-radius: 11px;
+      background: var(--accent);
+      color: white;
+      margin-right: 10px
+    }
+
+    .tag {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 24px
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow)
+    }
+
+    .settings {
+      padding: 26px
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      margin: 10px 0 12px
+    }
+
+    h2 {
+      font-size: 15px;
+      margin: 0
+    }
+
+    p {
+      color: var(--muted);
+      margin: 0 0 22px
+    }
+
+    .field {
+      margin-top: 22px
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 650;
+      margin-bottom: 8px
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 11px 12px;
+      min-width: 0
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px
+    }
+
+    .primary,
+    .secondary {
+      border: 0;
+      border-radius: 11px;
+      padding: 11px 16px;
+      font-weight: 600
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff
+    }
+
+    .secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--line)
+    }
+
+    .full {
+      width: 100%;
+      margin-top: 22px
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .controls button {
+      flex: 1
+    }
+
+    .session {
+      min-height: 650px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden
+    }
+
+    .session-head {
+      padding: 21px 26px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #a5a9ba
+    }
+
+    .online .dot {
+      background: #37ad80
+    }
+
+    .error .dot {
+      background: var(--error)
+    }
+
+    .error {
+      color: var(--error)
+    }
+
+    .chat {
+      flex: 1;
+      overflow: auto;
+      height: 420px;
+      padding: 26px;
+      scroll-behavior: smooth
+    }
+
+    .empty {
+      height: 100%;
+      min-height: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center
+    }
+
+    .orb {
+      width: 106px;
+      height: 106px;
+      border-radius: 36px;
+      background: radial-gradient(circle at 30% 25%, #d5ccff, #9c8aee 52%, #6552ca);
+      box-shadow: 0 15px 45px #8670df35, inset 0 0 20px #ffffff60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 28px
+    }
+
+    .orb i {
+      display: block;
+      width: 5px;
+      border-radius: 5px;
+      background: #fff9;
+      height: 25px
+    }
+
+    .orb i:nth-child(2),
+    .orb i:nth-child(4) {
+      height: 38px
+    }
+
+    .orb i:nth-child(3) {
+      height: 53px
+    }
+
+    .empty h2 {
+      font-size: 24px;
+      letter-spacing: -.6px
+    }
+
+    .empty p {
+      max-width: 340px;
+      margin-top: 10px
+    }
+
+    .msg {
+      margin-bottom: 20px;
+      max-width: 88%
+    }
+
+    .msg.user {
+      margin-left: auto
+    }
+
+    .msg .who {
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--muted);
+      margin: 0 3px 6px
+    }
+
+    .msg .body {
+      padding: 13px 16px;
+      background: var(--bg);
+      border-radius: 15px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere
+    }
+
+    .msg.user .body {
+      background: var(--soft)
+    }
+
+    .msg.sys {
+      max-width: 100%;
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .msg.sys .body {
+      background: transparent;
+      padding: 0
+    }
+
+    .composer {
+      display: flex;
+      gap: 10px;
+      padding: 18px 22px;
+      border-top: 1px solid var(--line)
+    }
+
+    .composer input {
+      background: transparent
+    }
+
+    .bottom {
+      padding: 0 24px 16px;
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between
+    }
+
+    .notice {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--error);
+      overflow-wrap: anywhere
+    }
+
+    .setup {
+      margin-top: 26px;
+      padding: 20px 24px
+    }
+
+    .setup summary {
+      cursor: pointer;
+      font-weight: 600
+    }
+
+    .setup p {
+      margin: 16px 0 10px;
+      font-size: 13px
+    }
+
+    .setup pre {
+      overflow: auto;
+      padding: 18px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 12px
+    }
+
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center
+    }
+
+    a {
+      color: var(--accent)
+    }
+
+    [hidden] {
+      display: none !important
+    }
+
+    @media(prefers-color-scheme:dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #15151d;
+        --panel: #1e1e29;
+        --text: #eeeef8;
+        --muted: #a0a0b7;
+        --line: #30303f;
+        --accent: #9b8bf6;
+        --soft: #35304e;
+        --error: #ff95a5
+      }
+
+      .primary {
+        color: #161125
+      }
+    }
+
+    @media(max-width:760px) {
+      .wrap {
+        padding: 22px 16px
+      }
+
+      .layout {
+        grid-template-columns: 1fr
+      }
+
+      header {
+        margin-bottom: 24px
+      }
+
+      .settings {
+        padding: 22px
+      }
+
+      .session {
+        min-height: 540px
+      }
+
+      .chat {
+        height: 340px
+      }
+
+      .tag {
+        font-size: 10px
+      }
+
+      .composer {
+        padding: 14px
+      }
+
+      .session-head {
+        padding: 18px
+      }
+
+      .msg {
+        max-width: 95%
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      * {
+        scroll-behavior: auto !important;
+        transition: none !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand"><span class="logo" aria-hidden="true">≋</span>Voice Studio</div><span class="tag">OpenAI ·
+        Realtime</span>
+    </header>
+    <main class="layout">
+      <aside class="card settings"><span class="tag">Your conversation, live</span>
+        <h1>A little less typing.<br>A lot more talking.</h1>
+        <p>Think out loud with an AI assistant. Speak naturally, or send a message.</p>
+        <div class="field"><label for="voice">Assistant voice</label><select id="voice">
+            <option value="marin">Marin · default</option>
+            <option value="cedar">Cedar</option>
+            <option value="alloy">Alloy</option>
+            <option value="verse">Verse</option>
+            <option value="coral">Coral</option>
+          </select></div>
+        <div class="field"><label for="token">Temporary client key</label><input id="token" type="password"
+            placeholder="ek_…" autocomplete="off" spellcheck="false">
+          <div class="hint">Paste a fresh temporary key. It is never saved in browser storage.</div>
+        </div>
+        <button class="primary full" id="connect">Connect microphone</button>
+        <div class="controls"><button class="secondary" id="mute" disabled aria-pressed="false">Mute mic</button><button
+            class="secondary" id="disconnect" disabled>End session</button></div>
+        <div id="notice" class="notice" role="alert"></div>
+        <div class="hint">Microphone access starts when you connect. Your audio is sent to OpenAI during the session.
+        </div>
+      </aside>
+      <section class="card session" aria-label="Conversation">
+        <div class="session-head">
+          <h2>Conversation</h2>
+          <div id="status" class="status" role="status"><span class="dot"></span><span id="statusText">Not
+              connected</span></div>
+        </div>
+        <div id="chat" class="chat" role="log" aria-label="Conversation transcript" aria-live="polite"
+          aria-relevant="additions text">
+          <div id="empty" class="empty">
+            <div class="orb" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <h2>Good conversations start here.</h2>
+            <p>Connect your microphone, then say hello.<br>Your conversation will appear here.</p>
+          </div>
+        </div>
+        <form id="composer" class="composer"><input id="text" aria-label="Message" placeholder="Or type your message…"
+            disabled autocomplete="off"><button id="send" class="primary" disabled>Send ↗</button><button type="button"
+            id="stop" class="secondary" disabled>Stop</button></form>
+        <div class="bottom"><span id="micState">Microphone off</span><span>AI voice · gpt-realtime</span></div>
+      </section>
+    </main>
+    <details class="card setup">
+      <summary>Get a temporary client key</summary>
+      <p>Run this in Terminal with OPENAI_API_KEY already set. Copy the returned key, then connect before it expires.
+      </p>
+      <pre>curl -sS -X POST https://api.openai.com/v1/realtime/client_secrets \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"session":{"type":"realtime","model":"gpt-realtime"}}' \
+  | jq -r '.value // .error'</pre>
+      <p>Use only the temporary key here. For a deployed app, create temporary keys on your server. Serve this file over
+        localhost or HTTPS for microphone access.</p>
+    </details>
+    <footer>Built for natural back-and-forth. You can interrupt the assistant at any time.</footer>
+  </div><audio id="audio" autoplay></audio>
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    let peer = null, channel = null, stream = null, controller = null, connecting = false, ready = false, muted = false, generating = false;
+    const messages = new Map();
+    function status(text, kind = '') { $('statusText').textContent = text; $('status').className = 'status ' + kind; }
+    function controls() { $('connect').disabled = connecting || ready; $('connect').textContent = connecting ? 'Connecting…' : 'Connect microphone'; for(const id of ['voice', 'token']) $(id).disabled = connecting || ready; for(const id of ['mute', 'disconnect', 'text', 'send']) $(id).disabled = !ready; $('stop').disabled = !ready || !generating; }
+    function message(id, role, text, append = false) { $('empty')?.remove(); let entry = messages.get(id); if(!entry) { const box = document.createElement('div'); box.className = 'msg ' + role; const who = document.createElement('div'); who.className = 'who'; who.textContent = role === 'user' ? 'YOU' : role === 'assistant' ? 'ASSISTANT' : 'SESSION'; const body = document.createElement('div'); body.className = 'body'; box.append(who, body); $('chat').append(box); entry = { body }; messages.set(id, entry); } entry.body.textContent = append ? entry.body.textContent + text : text; $('chat').scrollTop = $('chat').scrollHeight; }
+    function send(event) { if(channel?.readyState === 'open') channel.send(JSON.stringify(event)); }
+    function cleanup() { ready = false; connecting = false; generating = false; controller?.abort(); controller = null; if(channel) { channel.onclose = null; channel.close(); } channel = null; if(peer) { peer.onconnectionstatechange = null; peer.close(); } peer = null; stream?.getTracks().forEach(track => track.stop()); stream = null; $('audio').srcObject = null; muted = false; $('mute').textContent = 'Mute mic'; $('mute').setAttribute('aria-pressed', 'false'); $('micState').textContent = 'Microphone off'; controls(); }
+    function fail(error) { cleanup(); status('Connection ended', 'error'); $('notice').textContent = error?.message || String(error); }
+    function eventReceived(event) {
+      if(event.type === 'session.updated') { ready = true; connecting = false; clearTimeout(connectionTimer); $('token').value = ''; status('Listening', 'online'); $('micState').textContent = 'Microphone on'; controls(); }
+      if(event.type === 'input_audio_buffer.speech_started') status('Listening to you', 'online');
+      if(event.type === 'input_audio_buffer.speech_stopped') status('Thinking…', 'online');
+      if(event.type === 'conversation.item.input_audio_transcription.completed') message(event.item_id, 'user', event.transcript);
+      if(event.type === 'conversation.item.input_audio_transcription.failed') $('notice').textContent = 'Could not transcribe that audio. Please try again.';
+      if(['response.output_audio_transcript.delta', 'response.output_text.delta'].includes(event.type)) message(event.item_id, 'assistant', event.delta, true);
+      if(['response.output_audio_transcript.done', 'response.output_text.done'].includes(event.type)) message(event.item_id, 'assistant', event.transcript ?? event.text ?? '');
+      if(event.type === 'response.created') { generating = true; status('Thinking…', 'online'); controls(); }
+      if(event.type === 'output_audio_buffer.started') { generating = true; status('Speaking', 'online'); controls(); }
+      if(event.type === 'response.done') { if(event.response?.status === 'failed') $('notice').textContent = event.response.status_details?.error?.message || 'The assistant could not complete the reply.'; }
+      if(['output_audio_buffer.stopped', 'output_audio_buffer.cleared'].includes(event.type)) { generating = false; status('Listening', 'online'); controls(); }
+      if(event.type === 'error') { $('notice').textContent = event.error?.message || 'The session reported an error.'; generating = false; controls(); }
+    }
+    let connectionTimer;
+    $('connect').onclick = async () => {
+      const key = $('token').value.trim(); $('notice').textContent = ''; if(!key.startsWith('ek_')) { $('notice').textContent = 'Paste a temporary client key beginning with ek_.'; $('token').focus(); return; }
+      if(!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { $('notice').textContent = 'Open this page on localhost or HTTPS in a browser with microphone support.'; return; }
+      connecting = true; controls(); status('Requesting microphone…');
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        peer = new RTCPeerConnection(); const activePeer = peer; controller = new AbortController();
+        connectionTimer = setTimeout(() => fail(new Error('Connection timed out. Try a fresh temporary key.')), 30000);
+        peer.ontrack = event => { $('audio').srcObject = event.streams[0] || new MediaStream([event.track]); $('audio').play().catch(() => { $('notice').textContent = 'Audio playback was blocked. Click Enable audio below.'; $('enableAudio').hidden = false; }); };
+        peer.onconnectionstatechange = () => { if(peer !== activePeer) return; if(['failed', 'closed'].includes(peer.connectionState)) { clearTimeout(connectionTimer); fail(new Error('Connection lost. Generate a fresh key and reconnect.')); } else if(peer.connectionState === 'disconnected') status('Reconnecting…'); };
+        stream.getTracks().forEach(track => peer.addTrack(track, stream)); channel = peer.createDataChannel('oai-events');
+        channel.onmessage = event => { try { eventReceived(JSON.parse(event.data)); } catch(error) { console.error('Unable to read session event', error); } };
+        channel.onclose = () => { clearTimeout(connectionTimer); fail(new Error('Session closed. Connect again with a fresh key.')); };
+        channel.onopen = () => send({ type: 'session.update', session: { type: 'realtime', instructions: 'You are a helpful, concise voice assistant. Speak naturally. Keep replies brief unless asked for detail.', audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' }, turn_detection: { type: 'semantic_vad', eagerness: 'medium', create_response: true, interrupt_response: true } }, output: { voice: $('voice').value } } } });
+        status('Connecting…'); const offer = await peer.createOffer(); await peer.setLocalDescription(offer);
+        const response = await fetch('https://api.openai.com/v1/realtime/calls', { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/sdp' }, body: offer.sdp, signal: controller.signal });
+        if(!response.ok) { const body = await response.text(); let detail = body; try { detail = JSON.parse(body).error?.message || body; } catch { } throw new Error('Connection failed (' + response.status + '): ' + detail); }
+        await peer.setRemoteDescription({ type: 'answer', sdp: await response.text() });
+      } catch(error) { clearTimeout(connectionTimer); fail(error); }
+    };
+    $('disconnect').onclick = () => { clearTimeout(connectionTimer); cleanup(); status('Not connected'); };
+    $('mute').onclick = () => { muted = !muted; stream?.getAudioTracks().forEach(track => track.enabled = !muted); $('mute').textContent = muted ? 'Unmute mic' : 'Mute mic'; $('mute').setAttribute('aria-pressed', String(muted)); $('micState').textContent = muted ? 'Microphone muted' : 'Microphone on'; };
+    $('stop').onclick = () => { send({ type: 'response.cancel' }); send({ type: 'output_audio_buffer.clear' }); generating = false; status('Listening', 'online'); controls(); };
+    $('composer').onsubmit = event => { event.preventDefault(); const text = $('text').value.trim(); if(!text || !ready) return; if(generating) { send({ type: 'response.cancel' }); send({ type: 'output_audio_buffer.clear' }); } const id = 'item_' + crypto.randomUUID().replaceAll('-', ''); send({ type: 'conversation.item.create', item: { id, type: 'message', role: 'user', content: [{ type: 'input_text', text }] } }); message(id, 'user', text); send({ type: 'response.create' }); $('text').value = ''; };
+    const enableAudio = document.createElement('button'); enableAudio.id = 'enableAudio'; enableAudio.className = 'secondary full'; enableAudio.textContent = 'Enable audio'; enableAudio.hidden = true; enableAudio.onclick = () => { $('audio').play().then(() => { enableAudio.hidden = true; $('notice').textContent = ''; }).catch(error => $('notice').textContent = error.message); }; $('notice').after(enableAudio);
+    window.addEventListener('pagehide', () => { clearTimeout(connectionTimer); cleanup(); }); controls();
+  </script>
+</body>
+
+</html>
